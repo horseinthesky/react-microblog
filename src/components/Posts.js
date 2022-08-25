@@ -3,8 +3,9 @@ import Spinner from "react-bootstrap/Spinner";
 import { useApi } from "../contexts/ApiProvider";
 import Post from "./Post";
 import More from "./More";
+import Write from "./Write";
 
-export default function Posts({ content = "feed" }) {
+export default function Posts({ content, write }) {
   const [posts, setPosts] = useState(null);
   const [pagination, setPagination] = useState();
   const api = useApi();
@@ -37,7 +38,7 @@ export default function Posts({ content = "feed" }) {
 
   const loadNextPage = async () => {
     const response = await api.get(url, {
-      after: posts[posts.length - 1].timestamp
+      after: posts[posts.length - 1].timestamp,
     });
     if (response.ok) {
       setPosts([...posts, ...response.body.data]);
@@ -45,26 +46,33 @@ export default function Posts({ content = "feed" }) {
     }
   };
 
+  const showPost = (newPost) => {
+    setPosts([newPost, ...posts]);
+  };
+
   return (
     <>
-      {posts === undefined ? (
-        <Spinner animation="border" />
-      ) : (
-        <>
-          {posts === null ? (
-            <p>Could not retrieve blog posts.</p>
-          ) : (
-            <>
-              {posts.length === 0 ? (
-                <p>There are no blog posts.</p>
-              ) : (
-                posts.map((post) => <Post key={post.id} post={post} />)
-              )}
-              <More pagination={pagination} loadNextPage={loadNextPage} />
-            </>
-          )}
-        </>
-      )}
+      {write && <Write showPost={showPost} />}
+      <>
+        {posts === undefined ? (
+          <Spinner animation="border" />
+        ) : (
+          <>
+            {posts === null ? (
+              <p>Could not retrieve blog posts.</p>
+            ) : (
+              <>
+                {posts.length === 0 ? (
+                  <p>There are no blog posts.</p>
+                ) : (
+                  posts.map((post) => <Post key={post.id} post={post} />)
+                )}
+                <More pagination={pagination} loadNextPage={loadNextPage} />
+              </>
+            )}
+          </>
+        )}
+      </>
     </>
   );
 }
