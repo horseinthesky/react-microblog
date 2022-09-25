@@ -1,16 +1,19 @@
-import { createContext, useContext } from 'react';
-import MicroblogApiClient from '../MicroblogApiClient';
+import { createContext, useContext, useCallback, useMemo } from "react";
+import MicroblogApiClient from "../MicroblogApiClient";
+import { useFlash } from "./FlashProvider";
 
 const ApiContext = createContext();
 
 export default function ApiProvider({ children }) {
-  const api = new MicroblogApiClient();
+  const flash = useFlash();
 
-  return (
-    <ApiContext.Provider value={api}>
-      {children}
-    </ApiContext.Provider>
-  );
+  const onError = useCallback(() => {
+    flash("An unexpected error has occurred. Please try again.", "danger");
+  }, [flash]);
+
+  const api = useMemo(() => new MicroblogApiClient(onError), [onError]);
+
+  return <ApiContext.Provider value={api}>{children}</ApiContext.Provider>;
 }
 
 export function useApi() {
